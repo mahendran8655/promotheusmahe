@@ -1,0 +1,22 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: alert-manager-config
+  namespace: monitoring
+data:
+  config.yml: |-
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 1m
+      receiver: 'autoscaler'
+    receivers:
+    - name: 'autoscaler'
+      webhook_configs:
+      - url: 'https://webhook.site/662481cf-0dbc-4a26-a0d2-ee337a44a989'
+        send_resolved: false
+

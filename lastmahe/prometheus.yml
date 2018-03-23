@@ -1,0 +1,90 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: prometheus-core
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: core
+  annotations:
+    deployment.kubernetes.io/revision: '2'
+    kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"prometheus","component":"core"},"name":"prometheus-core","namespace":"monitoring"},"spec":{"replicas":1,"template":{"metadata":{"labels":{"app":"prometheus","component":"core"},"name":"prometheus-main"},"spec":{"containers":[{"args":["-storage.local.retention=12h","-storage.local.memory-chunks=500000","-config.file=/etc/prometheus/prometheus.yaml","-alertmanager.url=prometheus.monitoring.svc.cluster.local:9093"],"image":"prom/prometheus:v1.7.0","name":"prometheus","ports":[{"containerPort":9090,"name":"webui"}],"resources":{"limits":{"cpu":"500m","memory":"500M"},"requests":{"cpu":"500m","memory":"500M"}},"volumeMounts":[{"mountPath":"/etc/prometheus","name":"config-volume"},{"mountPath":"/etc/prometheus-rules","name":"rules-volume"}]}],"serviceAccountName":"prometheus-k8s","volumes":[{"configMap":{"name":"prometheus-core"},"name":"config-volume"},{"configMap":{"name":"prometheus-rules"},"name":"rules-volume"}]}}}}
+
+'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      component: core
+  template:
+    metadata:
+      name: prometheus-main
+      creationTimestamp: 
+      labels:
+        app: prometheus
+        component: core
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-core
+          defaultMode: 420
+      - name: rules-volume
+        configMap:
+          name: prometheus-alert-rules
+          defaultMode: 420
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v1.7.0
+        args:
+        - "-storage.local.retention=12h"
+        - "-storage.local.memory-chunks=500000"
+        - "-config.file=/etc/prometheus/prometheus.yaml"
+        - "-alertmanager.url=prometheus.monitoring.svc.cluster.local:9093"
+        ports:
+        - name: webui
+          containerPort: 9090
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500M
+          requests:
+            cpu: 500m
+            memory: 500M
+        volumeMounts:
+        - name: config-volume
+          mountPath: "/etc/prometheus"
+        - name: rules-volume
+          mountPath: "/etc/prometheus-rules"
+        terminationMessagePath: "/dev/termination-log"
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      serviceAccountName: prometheus-k8s
+      serviceAccount: prometheus-k8s
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+status:
+  observedGeneration: 4
+  replicas: 1
+  updatedReplicas: 1
+  readyReplicas: 1
+  availableReplicas: 1
+  conditions:
+  - type: Available
+    status: 'True'
+    lastUpdateTime: '2018-03-01T13:59:00Z'
+    lastTransitionTime: '2018-03-01T13:59:00Z'
+    reason: MinimumReplicasAvailable
+    message: Deployment has minimum availability.
+

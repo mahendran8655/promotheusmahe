@@ -1,0 +1,29 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheus
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: core
+  annotations:
+    prometheus.io/scrape: 'true'
+spec:
+  ports:
+  - name: webui
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
+    nodePort: 30137
+  selector:
+    app: prometheus
+  clusterIP: 10.43.242.177
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+status:
+  loadBalancer:
+    ingress:
+    - ip: 35.225.193.115
+

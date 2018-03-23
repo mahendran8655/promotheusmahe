@@ -1,0 +1,29 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: javaappservice
+  namespace: myapp
+spec:
+  ports:
+  - name: javaappport
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 32756
+  - name: promport
+    protocol: TCP
+    port: 5000
+    targetPort: 5000
+    nodePort: 32322
+  selector:
+    app: javaapp
+  clusterIP: 10.43.245.79
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+status:
+  loadBalancer:
+    ingress:
+    - ip: 35.224.245.146
+
